@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
+                   "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd"
+[
+  <!-- entities files to use -->
+  <!ENTITY % global_entities SYSTEM 'global.entities'>
+  %global_entities;
+]>
+
+<refentry id='amvault.8'>
+<refmeta>
+<refentrytitle>amvault</refentrytitle>
+<manvolnum>8</manvolnum>
+&rmi.source;
+&rmi.version;
+&rmi.manual.8;
+</refmeta>
+<refnamediv>
+<refname>amvault</refname>
+<refpurpose>Copy Amanda dumps from one volume to another</refpurpose>
+</refnamediv>
+<refentryinfo>
+&author.dustin;
+</refentryinfo>
+<!-- body begins here -->
+<refsynopsisdiv>
+<cmdsynopsis>
+  <command>amvault</command>
+    &configoverride.synopsis;
+    <arg choice='plain'><replaceable>config</replaceable></arg>
+    <arg choice='plain'><replaceable>src-run-timestamp</replaceable></arg>
+    <arg choice='plain'><replaceable>dst-changer</replaceable></arg>
+    <arg choice='plain'><replaceable>label-template</replaceable></arg>
+</cmdsynopsis>
+</refsynopsisdiv>
+
+<refsect1><title>WARNING</title>
+<para>This application is not yet in its final form, and is subject to major revision
+in subsequent versions of Amanda.  Backward compatibility is not guaranteed.</para>
+
+<para>The significant limitations of this version of amvault are: tapetypes for
+secondary and tertiary volumes much match (including length and
+device_properties); tertiary volumes must be blank (manual erasure is required
+to re-use tertiary media; restore/recover operations will request tertiary
+media by label when dumpfiles are not found on secondary media, but there is no
+provision to automatically fetch such media from a different changer; and all
+dumpfiles on a secondary volume are moved to tertiary media - there is no
+provision to filter dumps.</para>
+
+<para>Feedback on and patches to this application are invited and
+encouraged!</para>
+
+</refsect1>
+
+<refsect1><title>DESCRIPTION</title>
+
+<para><emphasis remap='B'>Amvault</emphasis> Copies data from the run with
+timestamp <emphasis remap='I'>src-run-timestamp</emphasis> onto volumes using
+the changer <emphasis remap='I'>dst-changer</emphasis>, labeling new volumes
+with <emphasis remap='I'>label-template</emphasis>.  If <emphasis
+remap='I'>src-run-timestamp</emphasis> is "latest", then the most recent amdump
+or amflush run will be used.</para>
+
+<para>In a vaulting operation, the source media is referred to as "secondary
+media", while the destination is referred to as "tertiary media".</para>
+
+<para>Each source volume will be copied to a new destination volume; no
+re-assembly or splitting will be performed.  Destination volumes must be at
+least as large as the source volumes.</para>
+
+<para>The changer parameter should specify the name of a changer defined in
+&amconf;.  For example:
+<programlisting>
+define changer vaulting_tape {
+    tapedev "/dev/rmt/1n"
+    tpchanger "chg-zd-mtx"
+    changerdev "/dev/sg0"
+    changerfile "vaulting-changer.conf"
+}
+</programlisting></para>
+
+<para>The label template functions identically to the <emphasis
+remap='I'>label-new-tapes</emphasis> parameter in &amconf;.</para>
+
+</refsect1>
+
+<seealso>
+<manref name="amanda-changers" vol="7"/>
+</seealso>
+
+</refentry>
+

@@ -1,0 +1,239 @@
+		Release Notes for amanda-3.1.0
+
+config
+  * The 'rawtapedev' keyword was removed, and the 'label_new_tapes' keyword
+    was deprecated.
+  * New warnings for dangerous splitting configurations
+
+changer
+  We have many changers implementing the new changer API. The new changers are
+  faster, more reliable, and have many new features.  One new features is that
+  the changer keeps track of which label is in which slot, allowing it to
+  locate a tape faster. But with some changers (new chg-multi or chg-robot
+  without a barcode), it doesn't get automaticaly notified if you change the
+  volume in a slot. In this case, you must notify the changer of it with the
+  'amtape <conf> update' command:
+    amtape DailySet1 update 3-8
+    amtape DailySet1 update 3-8=
+    amtape DailySet1 update 3=DailySet-003
+  See amanda-changers(7) for more information.
+
+ndmp, dvdrw
+  New Amanda devices - see amanda-devices(7) for more information.
+
+amsamba
+  The default amandapass file for the amsamba application is
+  $CONFIG_DIR/amandapass, but it is /etc/amandapass for program GNUTAR.
+  Don't forget to move the file if you switch to the amsamba application.
+
+ampgsql, amsuntar, amraw
+  New applications to back up PostgreSQL databases, Solaris systems, and
+  raw device files, respectively.
+
+amtape
+  Amtape's behavior has changed; see NEWS
+
+amrmtape
+  Rewritten with new command-line interface; see NEWS
+
+amdevcheck
+  New --label and --properties options give more information about device
+
+amreport
+  New, more natural command-line interface (try 'amreport $config')
+
+
+		Release Notes for amanda-2.6.1
+
+amgtar, amstar, amsamba, amzfs-sendrecv
+  Three new programs implementing application-api.
+  Swithching from the program "GNUTAR" to the application "amgtar" have some
+  advantage:
+   - amgtar use by default the gtar --atime-preserve=system option, you must
+     disable it if you gtar relase doesn't have that option.
+   - Can be configured to cross filesystem.
+   - Can be configured to not check the device number on newer gtar
+     (--no-check-device of gtar).
+   - You can configure error message from gtar you don't want to see in the
+     report.
+
+amzfs-snapshot, script-email
+  Two new scripts implementing script-api.
+  The 'zfs-snapshot' script must be used only with the 'amgtar' application.
+
+amarchiver
+  New program to manipulate file in amanda archive format.
+
+New perl Module:
+  Application (perl utility functions for Applications)
+  Archive (Perl access to the  amanda archive library)
+  Constants (perl access to build-time configuration values)
+  MainLoop (Perl interface to the Glib MainLoop)
+  Process (interface to process), used by amcleanup.
+  Script (perl utility functions for Scripts)
+  Tapelist (Manipulate the Amanda tapelist)
+  Xfer (Xfer-api)
+
+
+		Release Notes for amanda-2.6.0
+
+amcheckdump
+  New program written entirely in perl, it replaces 'amverify' and
+  'amveryfyrun'
+
+amcryptsimple, amgpgcrypt
+  New encryption plugins based on gpg.
+
+amserverconfig, amaddclient
+  New Initial Amanda configuration tools, these tools make assumptions,
+   please see man page.
+
+Deprecated programs
+  'amverify' and 'amveryfyrun' are deprecated -- use amcheckdump.
+  'amdd' and 'ammt' are also deprecated. If you have scripts that use
+  them, then you must rewrite them in perl using the new perl modules.
+
+Configure options
+  --disable-shared doesn't work because perl modules require shared library.
+  Instead, use --with-static-binaries to build staticailly linked binaries.
+  --with-amlibdir, libraries are now installed in $amlibdir
+    --without-amlibdir              : amlibdir=$libdir
+    --with-amlibdir=yes             : amlibdir=$libdir/amanda  (default value)
+    --with-amlibdir=/path/to/libdir : amlibdir=/path/to/libdir
+  --with-amlibexecdir, internal programs are installed in $amlibexecdir
+    --without-amlibexecdir                  : amlibdir=$libexecdir
+    --with-amlibexecdir=yes                 : amlibdir=$libexecdir/amanda
+                                                             (default value)
+    --with-amlibexecdir=/path/to/libexecdir : amlibdir=/path/to/libexecdir
+  --with-amperldir, Where to install perl modules
+    --without-amperldir               : amperldir=$amlibdir/perl
+    --with-amperldir=yes              : amperldir= $(perl installsitelib)
+                                                                (default value)
+    --with-amperldir=/path/to/perldir : amperldir=/path/to/perldir
+
+Path changes
+  Libraries are installed in $amlibdir (previously $libdir)
+  Internal programs are installed in $amlibexecdir (previously $libexecdir)
+  You must change your inetd/xinetd config for the new amandad path.
+  The amandad path change affect rsh/ssh auth, amanda-2.6.0 installations
+  will need to add an 'amandad_path' parameter to configuration files in
+  order to talk to older versions of Amanda:
+     amanda-2.6.0 client -> amanda-2.5.2 or earlier server: add
+       'amandad_path "/usr/libexec/amandad"' (or the appropriate path) to
+       /etc/amanda/amanda-client.conf
+     amanda-2.5.2 or earlier client -> amanda-2.6.0 server: add
+       'amandad_path "/usr/libexec/amanda/amandad"' (or the appropriate path)
+       to /etc/amanda/amanda-client.conf
+     amanda-2.6.0 server -> amanda-2.5.2 or earlier client: add
+       'amandad_path "/usr/libexec/amandad"' (or the appropriate path) to the
+       dumptype
+     amanda-2.5.2 or earlier server -> amanda-2.6.0 client: add
+       'amandad_path "/usr/libexec/amanda/amandad"' (or the appropriate path)
+       to the dumptype
+  The amandates files is now $localstatedir/amanda/amandates, previously it
+  was /etc/amandates, this file must be created on all client.
+
+usetimestamps
+  It now defaults to 'yes'.
+
+Glib
+  glib is required to compile and run amanda.
+  It is free and can be downloaded form http://www.gtk.org/download/
+
+Device API
+  The Device API is a complete rewrite of all tape-access functionality.
+  To use the Device API, all devices must be specified by their full
+  name, e.g., tape:/dev/nst0.  Existing functionality is now available
+  in the tape, file, and rait devices, and a new Amazon S3 backend named
+  's3' is also available.
+
+Perl Module
+  Link directly to Amanda, to support writing Amanda applications in Perl
+  Available Modules:
+    Changer (Execute changer scripts)
+    Cmdline (Parse command line argument)
+    Config (Parse config files)
+    Device (device-api)
+    Debug (Write to debug files)
+    Logfile (Parse log files)
+    Tapefile (Parse tapelist file)
+  Perl modules are installed in $amperldir
+
+local security driver (auth)
+  Allows backups of the Amanda server without any need for network
+  configuration, and similarly allows amrecover to work on the Amanda
+  server without any network configuration.
+
+make installcheck
+  Almost 200 unit tests are available, which should be run on an installed
+  copy of Amanda.  See http://wiki.zmanda.com/index.php/Testing for more
+  information.
+
+flush-threshold-dumped, flush-threshold-scheduled, taperflush
+  These three config options allow to better fill your tapes.
+  They are what was known as the taperstart/taperflush feature.
+
+
+		Release Notes for amanda-2.5.2
+
+IPv6
+
+  IPv6 support is enabled by default if your OS support it, if your OS is
+  not working correctly with IPV6, you can disable it at configure time
+  with '--without-ipv6'.
+
+readblocksize
+
+  This option is useful only if you configured amanda with a big
+  '--with-maxtapeblocksize' and your hardware can't works with big block
+  size.
+  
+
+		Release Notes for amanda-2.5.1
+
+
+usetimestamps
+
+  This new feature will record all dump with timestamp instead of datestamp,
+  it will allow to do many dump in a day and recover easily anyone of them.
+
+  If you use this features, you will not be able to downgrade to 2.5.0 or
+  earlier.
+
+  see the usetimestamps section of 'man amanda.conf'
+
+
+bsdudp/bsdtcp
+
+  These are 2 new auth, they still use bsd authentification like bsd, but
+  use less port.
+
+  bsdudp is like bsd, it use udp for connecting to client but it will use
+  only one tcp port for all data stream.
+
+  bsdtcp use tcp to connect the to client and it's the only network
+  connection use.  It doesn't have the udp packet size limit, so you can
+  have an unlimited number of DLE for a single host.
+
+amrecover use the security-api
+
+  amrecover now use the security-api, You don't need to configure an
+  amindexd and an amidxtaped services in your xinetd.
+  amindexd and amidxtaped will be launched by amandad like any other services.
+  You must do modification to your xinetd configuration and .amandahosts toi
+  allow connection to amindexd and amidxtaped.
+
+new format of xinetd.d/amanda
+
+  amandad get in arguments the list of services it can launch, you must add
+  theses services in the server_args options.
+
+new format of .amandahosts
+
+  You must append to each line the services this client can launch, the
+  default is "amdump"
+
+
+See the AUTHORIZATION section of the amanda man page and the
+docs/howto-auth.txt
+
